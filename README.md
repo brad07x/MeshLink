@@ -22,16 +22,16 @@ Forked from [Murturtle/MeshLink](https://github.com/murturtle/MeshLink)
 ## Commands
 **prefix + command (default prefix is $)**
 ### Discord
-send (message) - *`$send Hello from Discord.`*
-dm (!mesh node number) (message) - *`$dm !12345abc Test DM to node 12345abc from Discord.` (use `dmdebug` to get NodeID until shortnames are implemented)*
+- send (message) - *`$send Hello from Discord.`*
+- dm (!mesh node number) (message) - *`$dm !12345abc Test DM to node 12345abc from Discord.` (use `dmdebug` to get NodeID until shortnames are implemented)*
 
 ### Mesh
-ping
-weather
-hf
-time
-mesh
-dmdebug
+- ping
+- weather
+- hf
+- time
+- mesh
+- dmdebug
 
 ## Setup 
 
