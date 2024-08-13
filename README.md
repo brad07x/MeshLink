@@ -1,8 +1,10 @@
 # MeshLink
+Forked from [Murturtle/MeshLink](https://github.com/murturtle/MeshLink)
 ## Features
 
  - Send messages to and from discord
  - Send packet information to discord
+
  
  ### Mesh only
  - Weather forecast
@@ -10,14 +12,18 @@
  - HF condition checker
  - Time
  - Mesh statistics
+ - DM Debug (show 'toID' / 'fromID')
 
 ### WIP
 - SOS
+- NEW: Initial testing for Mesh DMs from discord (WIP/Testing, possibly broken)
+- NEW: MeshLink responses as DMs to DM request commands, broadcast responses to broadcast commands (WIP, but working)
 
 ## Commands
-**prefix + command**
+**prefix + command (default prefix is $)**
 ### Discord
-send (message)
+send (message) - *`$send Hello from Discord.`*
+dm (!mesh node number) (message) - *`$dm !12345abc Test DM to node 12345abc from Discord.` (use `dmdebug` to get NodeID until shortnames are implemented)*
 
 ### Mesh
 ping
@@ -25,6 +31,7 @@ weather
 hf
 time
 mesh
+dmdebug
 
 ## Setup 
 

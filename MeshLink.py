@@ -1,7 +1,7 @@
 # dont change unless you are making a fork
-update_check_url = "https://raw.githubusercontent.com/Murturtle/MeshLink/main/rev"
-update_url = "https://github.com/Murturtle/MeshLink"
-rev = 11
+update_check_url = "https://raw.githubusercontent.com/brad07x/MeshLink/main/rev"
+update_url = "https://github.com/brad07x/MeshLink"
+rev = 1
 import yaml
 import xml.dom.minidom
 import os
@@ -84,7 +84,7 @@ def asdf(a):
 def onConnection(interface, topic=pub.AUTO_TOPIC):
 
     print("Node ready")
-    interface.sendText("ready",channelIndex = config["send_channel_index"])
+    interface.sendText("MeshLink ready...",channelIndex = config["send_channel_index"])
     #a = interface.sendText("hola!")
     #print(a.id)
     #interface._addResponseHandler(a.id,asdf)
@@ -139,19 +139,34 @@ def onReceive(packet, interface):
 
                 if(noprefix.startswith("ping")):
                     final_ping = "pong"
-                    interface.sendText(final_ping,channelIndex=config["send_channel_index"])
+                    if (packet["toId"] != '^all'):
+                        interface.sendText(final_ping,channelIndex=config["send_channel_index"], destinationId=packet["fromId"])
+                    elif (packet["toId"] == '^all'):
+                        interface.sendText(final_ping,channelIndex=config["send_channel_index"])
                     if(config["send_mesh_commands_to_discord"]):
-                            send_msg("`MeshLink`> "+final_help)
+                            send_msg("`MeshLink`> "+final_ping)
                 
                 elif (noprefix.startswith("help")):
                     final_help = "<- Help ->\n"+"ping\n"+"time\n"+"weather\n"+"hf\n"+"mesh"
-                    interface.sendText(final_help,channelIndex=config["send_channel_index"],destinationId=packet["toId"])
+                    interface.sendText(final_help,channelIndex=config["send_channel_index"], destinationId=packet["fromId"])
                     if(config["send_mesh_commands_to_discord"]):
                             send_msg("`MeshLink`> "+final_help)
+
+                elif (noprefix.startswith("dmdebug")):
+                    final_dmdebug = "*** Incoming Message - DMDebug ***\n"+"From ID: "+packet["fromId"]+"\n"+"To ID: "+packet["toId"]
+                    if (packet["toId"] != '^all'):
+                        interface.sendText(final_dmdebug,channelIndex=config["send_channel_index"], destinationId=packet["fromId"])
+                    elif (packet["toId"] == '^all'):
+                        interface.sendText(final_dmdebug,channelIndex=config["send_channel_index"])
+                    if(config["send_mesh_commands_to_discord"]):
+                            send_msg("`MeshLink`> "+final_dmdebug)
                 
                 elif (noprefix.startswith("time")):
                     final_time = time.strftime('%H:%M:%S')
-                    interface.sendText(final_time,channelIndex=config["send_channel_index"],destinationId=packet["toId"])
+                    if (packet["toId"] != '^all'):
+                        interface.sendText(final_time,channelIndex=config["send_channel_index"], destinationId=packet["fromId"])
+                    elif (packet["toId"] == '^all'):
+                        interface.sendText(final_time,channelIndex=config["send_channel_index"])
                     if(config["send_mesh_commands_to_discord"]):
                         send_msg("`MeshLink`> "+final_time)
                 
@@ -168,7 +183,10 @@ def onReceive(packet, interface):
                     else:
                         final_weather += "error fetching"
                     print(final_weather)
-                    interface.sendText(final_weather,channelIndex=config["send_channel_index"],destinationId=packet["toId"])
+                    if (packet["toId"] != '^all'):
+                        interface.sendText(final_weather,channelIndex=config["send_channel_index"], destinationId=packet["fromId"])
+                    elif (packet["toId"] == '^all'):
+                        interface.sendText(final_weather,channelIndex=config["send_channel_index"])
                     if(config["send_mesh_commands_to_discord"]):
                         send_msg("`MeshLink`> "+final_weather)
                 
@@ -183,7 +201,10 @@ def onReceive(packet, interface):
                     else:
                         final_hf += "error fetching"
                     print(final_hf)
-                    interface.sendText(final_hf,channelIndex=config["send_channel_index"],destinationId=packet["toId"])
+                    if (packet["toId"] != '^all'):
+                        interface.sendText(final_hf,channelIndex=config["send_channel_index"], destinationId=packet["fromId"])
+                    elif (packet["toId"] == '^all'):
+                        interface.sendText(final_hf,channelIndex=config["send_channel_index"])
 
                     if(config["send_mesh_commands_to_discord"]):
                         send_msg("`MeshLink`> "+final_hf)
@@ -229,7 +250,10 @@ def onReceive(packet, interface):
                     # else:
                     #     final_mesh += "\n temp avg: N/A"
                     
-                    interface.sendText(final_mesh, channelIndex=config["send_channel_index"], destinationId=packet["toId"])
+                    if (packet["toId"] != '^all'):
+                        interface.sendText(final_mesh,channelIndex=config["send_channel_index"], destinationId=packet["fromId"])
+                    elif (packet["toId"] == '^all'):
+                        interface.sendText(final_mesh,channelIndex=config["send_channel_index"])
                     
             send_msg(final_message)
             
@@ -258,7 +282,7 @@ if config["use_discord"]:
     @client.event
     async def on_ready():   
         print('Logged in as {0.user}'.format(client))
-        #send_msg("ready")
+        send_msg("MeshLink ready...")
 
     @client.event
     async def on_message(message):
@@ -279,6 +303,32 @@ if config["use_discord"]:
                     await message.reply("(trunked) "+final_message[:config["max_message_length"]])
                     interface.sendText(final_message,channelIndex = config["send_channel_index"])
                     print(final_message[:config["max_message_length"]])
+
+        # Handle '$dm' command
+        elif message.content.startswith(config["discord_prefix"] + 'dm'):
+            if message.channel.id in config["message_channel_ids"]:
+                await message.channel.typing()
+                parts = message.content[len(config["discord_prefix"] + "dm"):].strip().split(" ", 1)
+                
+                if len(parts) < 2:
+                    await message.reply("Usage: `$dm <nodeid> <message>`")
+                    return
+                
+                nodeid = parts[0].strip()
+                dm_message = parts[1].strip()
+                
+                # Construct the final DM message
+                final_dm_message = message.author.name + " > " + dm_message
+                
+                # Check the length of the message
+                if len(final_dm_message) < config["max_message_length"] - 1:
+                    await message.reply(f"DM to {nodeid}: {final_dm_message}")
+                    interface.sendText(final_dm_message, channelIndex=config["send_channel_index"], destinationId=nodeid)
+                    print(final_dm_message)
+                else:
+                    await message.reply(f"(trunked) DM to {nodeid}: " + final_dm_message[:config["max_message_length"]])
+                    interface.sendText(final_dm_message[:config["max_message_length"]], channelIndex=config["send_channel_index"], destinationId=nodeid)
+                    print(final_dm_message[:config["max_message_length"]])
                 
             else:
                 return
