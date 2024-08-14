@@ -17,3 +17,4 @@ max_weather_hours: 4 # how many hours ahead to send weather info for
 ping_on_messages: False
 message_role: "@here"
 use_discord: True
+guild_id: 1234567890123456789 # discord guild/server ID
